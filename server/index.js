@@ -87,9 +87,9 @@ client.on( "message", async function ( message ) {
     } )
     
     message.reply( `New Match:
-    Player 1 ${config.APP_URL}/match/${matchId}/${token0}
-    Player 2 ${config.APP_URL}/match/${matchId}/${token1}
-    Spectator ${config.APP_URL}/match/${matchId}
+    Player 1 ${process.env.APP_URL}/match/${matchId}/${token0}
+    Player 2 ${process.env.APP_URL}/match/${matchId}/${token1}
+    Spectator ${process.env.APP_URL}/match/${matchId}
     ` )
     
     
@@ -112,8 +112,7 @@ client.on( "message", async function ( message ) {
     
   }
   
-  
 } );
 
 
-client.login( config.BOT_TOKEN );
+client.login( process.env.BOT_TOKEN );
