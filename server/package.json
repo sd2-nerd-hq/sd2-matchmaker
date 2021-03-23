@@ -1,0 +1,28 @@
+{
+  "name": "invest-o-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --inspect index.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ascii-table": "0.0.9",
+    "discord.js": "^12.3.1",
+    "nanoid": "^3.1.22",
+    "nedb-promises": "^4.0.4",
+    "stocks.js": "0.0.19",
+    "unique-names-generator": "^4.4.0",
+    "uuid": "^8.3.2",
+    "ws": "^7.4.4"
+  },
+  "devDependencies": {
+    "eslint": "^7.9.0",
+    "nodemon": "^2.0.4"
+  }
+}

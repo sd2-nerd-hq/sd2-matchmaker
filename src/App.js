@@ -7,6 +7,9 @@ import { Button, CssBaseline, GeistProvider } from "@geist-ui/react";
 import { animated, config, useSpring } from "react-spring";
 import maps from "./data/maps"
 import { alliesDivs, axisDivs } from "./data/divisions";
+import socket, { useServer } from "./service/socket"
+import { useParams } from "react-router";
+
 
 const App = () => (
   <GeistProvider themeType={"dark"}>
@@ -270,16 +273,16 @@ function PickFaction() {
       </div>
     </div>
     
-   <div className="tc mw7 center">
-     <div className="tc flex flex-column pt3">
-       <div className="pb3 flex flex-column items-stretch"><Button ghost type={faction === "axis" ? "warning" : "default"} onClick={() => {
-         setFaction( "axis" )
-       }}>Axis</Button></div>
-       <div className="pb3 flex flex-column items-stretch"><Button ghost type={faction === "allies" ? "warning" : "default"} onClick={() => {
-         setFaction( "allies" )
-       }}>Allies</Button></div>
-     </div>
-   </div>
+    <div className="tc mw7 center">
+      <div className="tc flex flex-column pt3">
+        <div className="pb3 flex flex-column items-stretch"><Button ghost type={faction === "axis" ? "warning" : "default"} onClick={() => {
+          setFaction( "axis" )
+        }}>Axis</Button></div>
+        <div className="pb3 flex flex-column items-stretch"><Button ghost type={faction === "allies" ? "warning" : "default"} onClick={() => {
+          setFaction( "allies" )
+        }}>Allies</Button></div>
+      </div>
+    </div>
     
     <MatchFooter>
       <div className="tc">
@@ -430,11 +433,57 @@ function IndexPage() {
 }
 
 
+function InitMatch() {
+  const params = useParams()
+  const { matchId, token } = params
+  
+  React.useEffect( () => {
+    socket.setToken( token )
+    socket.setMatchId( matchId )
+    socket.send( "JOIN", { matchId, token } )
+  }, [matchId, token] )
+  
+  const match = useServer( state => state.match )
+  console.log( { match } )
+  return <div className={""}>
+    <div className="pa3 tc">
+      {match && <div>
+        <div className="b f3"> {match.participants[ 0 ].username} </div>
+        <div className="f6 pv2">VS</div>
+        <div className="b f3">{match.participants[ 1 ].username}</div>
+        
+        <div className="pt3">
+          <div className={"pb1"}><Button onClick={() => {
+            socket.send( "INPUT", { rps: "ROCK" } )
+          }}>ROCK</Button></div>
+          <div className={"pb1"}><Button onClick={() => {
+            socket.send( "INPUT", { rps: "PAPER" } )
+          }}>PAPER</Button></div>
+          <div className={"pb1"}><Button onClick={() => {
+            socket.send( "INPUT", { rps: "SCISSORS" } )
+          }}>SCISSORS</Button></div>
+        </div>
+      </div>}
+      
+      {!match && <div className={"mw6 center"}>
+        <p>No match found. Start a new match in discord with</p>
+        <pre>!match @Opponent</pre>
+      </div>}
+    
+    </div>
+  </div>
+  
+}
+
+
 function Routes() {
+  const ready = useServer( state => state.ready )
+  if ( !ready ) return <div>CONNECTION NOT READY</div>
   return (
     <div className="App relative pb5">
       <Router>
         <Switch>
+          <Route exact path={"/match/:matchId/:token?"} component={InitMatch}/>
           <Route exact path={"/slot"} component={PickPlayer}/>
           <Route exact path={"/maps"} component={BanMaps}/>
           <Route exact path={"/pick-a-map"} component={PickMap}/>
