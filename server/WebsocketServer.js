@@ -1,12 +1,14 @@
-const fs = require( 'fs' );
-const http = require( 'https' );
 const WebSocket = require( 'ws' );
+const express = require("express")
+const INDEX = '/index.html';
+const server = express()
+  .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
+  .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-const server = http.createServer()
+
 const wss = new WebSocket.Server( { server } );
 
 const PORT = process.env.PORT || 8080
-server.listen(PORT)
 let subscribers = []
 
 
