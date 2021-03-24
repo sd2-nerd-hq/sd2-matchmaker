@@ -1,6 +1,5 @@
 const Match = require( "./Match" )
 const Discord = require( "discord.js" );
-const config = require( "./config.json" );
 const Datastore = require( 'nedb-promises' )
 const client = new Discord.Client();
 const WebsocketServer = require( "./WebsocketServer" )
