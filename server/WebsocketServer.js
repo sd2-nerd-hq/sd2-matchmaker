@@ -6,7 +6,7 @@ const server = http.createServer()
 const wss = new WebSocket.Server( { server } );
 
 const PORT = process.env.PORT || 8080
-
+server.listen(PORT)
 let subscribers = []
 
 
