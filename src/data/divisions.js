@@ -1,63 +1,7 @@
+import {divisions} from "sd2-data"
 
+const divisionsAllies = divisions.divisionsAllies
+const divisionsAxis = divisions.divisionsAxis
+const divisionsById = divisions.divisionsById
 
-const alliesDivs = {
-  "10000100": "2nd Guards",
-  "100000100": "3rd Guards Tank",
-  "10000110": "29th Tank Corps",
-  "10010000": "3rd Guards Mech",
-  "10010100": "Group Tyurin",
-  "10010011": "Group Bezugly",
-  "10010110": "9th Guards",
-  "10001111": "26th Guards",
-  "10010001": "44th Guards",
-  "10001110": "184th Guards",
-  "1000110": "3rd Us Armored",
-  "10011001": "2e Blindee",
-  "10011000": "15th Infantry",
-  "1000010": "3rd Canadian Infantry",
-  "100001110": "84th Gvard. Strelkovy",
-  "100000101": "Armia Krajowa",
-  "11111111": "1st Polish Infantry",
-  "101100101": "358 Strelkovy",
-  "101100000": "126th Strelki",
-  "101011111": "Gruppa Vyborg",
-  "110110101": "7th Guards Mech",
-  "110110100": "3rd VDV",
-  "110110011": "5th Cavaleri",
-  "110110110": "Morskaya",
-  "100001000": "1st Pancerna",
-  "1001110011": "6th Airborne",
-  "1001110100": "2nd US"
-};
-
-const axisDivs = {
-  "1000111": "5th Panzer",
-  "10000111": "20th Panzer",
-  "10011011": "21st Panzer",
-  "10011010": "116th Panzer",
-  "10011101": "Pz Lehr",
-  "10001010": "Gruppe Harteneck",
-  "100000011": "1st Skijager",
-  "10001001": "78th Sturm",
-  "10010101": "14th Infanterie",
-  "10001000": "28th Jager",
-  "10011100": "352nd Infantry",
-  "10001011": "Koruck 559",
-  "10001100": "1st Lovas",
-  "10001101": "12th Tartalekos",
-  "100001101": "25th Panzergrenadier",
-  "100000110": "5 Panzer Wiking",
-  "100000111": "Fallschrim Panzer H G",
-  "101100100": "122 Infantry",
-  "101011110": "Panssaridivisioona",
-  "101100010": "Ryhma Raapppana",
-  "110110001": "1st Blindata",
-  "110110010": "4th Munte",
-  "110101111": "97th Guards",
-  "110101110": "16th Panzer",
-  "1001110000": "17th SS",
-  "1001101111": "12th Panzer",
-  "1001110010": "3rd Fallschirmjäger"
-};
-
-export {alliesDivs, axisDivs}
+export {divisionsAllies, divisionsAxis, divisionsById}
