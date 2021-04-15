@@ -86,21 +86,61 @@ profileAPI.setState({username: localStorage.getItem("sd2:username")})
 const [useMatch, matchAPI] = create(set => ({
     coinWinner: undefined,
     map: false,
+    setMap: (map) => {
+        set({map})
+    },
     setBans: (team, bannedMaps) => {
         console.log({team, bannedMaps})
         if (team === "A") {
-            set({teamA: {bannedMaps}})
-        } else {
-            set({teamB: {bannedMaps}})
+            set(state => ({teamA: {...state.teamA, bannedMaps}}))
+        }
+        if (team === "B") {
+            set(state => ({teamB: {...state.teamB, bannedMaps}}))
+        }
+    },
+    setDivisionBans: (team, bannedDivisions) => {
+        if (team === "A") {
+            set(state => ({teamA: {...state.teamA, bannedDivisions}}))
+        }
+        if (team === "B") {
+            set(state => ({teamB: {...state.teamB, bannedDivisions}}))
+        }
+    },
+    setFaction(team, faction) {
+        if (team === "A") {
+            set(state => ({teamA: {...state.teamA, faction}}))
+        }
+        if (team === "B") {
+            set(state => ({teamB: {...state.teamB, faction}}))
+        }
+    },
+    setDivision(team, division) {
+        if (team === "A") {
+            set(state => ({teamA: {...state.teamA, division}}))
+        }
+        if (team === "B") {
+            set(state => ({teamB: {...state.teamB, division}}))
+        }
+    },
+    setIncome(team, income) {
+        if (team === "A") {
+            set(state => ({teamA: {...state.teamA, income}}))
+        }
+        if (team === "B") {
+            set(state => ({teamB: {...state.teamB, income}}))
         }
     },
     teamA: {
+        income: false,
+        faction: false,
         division: false,
         bannedDivisions: [],
         bannedMaps: {},
         players: []
     },
     teamB: {
+        income: false,
+        faction: false,
         division: false,
         bannedDivisions: [],
         bannedMaps: {},

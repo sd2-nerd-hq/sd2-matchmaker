@@ -3,12 +3,14 @@ import './App.css';
 import './tachyons.min.css';
 import create from "zustand";
 import {BrowserRouter as Router, Link, Route, Switch, useHistory} from "react-router-dom"
-import {Button, CssBaseline, GeistProvider, Input} from "@geist-ui/react";
+import {Button, Collapse, CssBaseline, GeistProvider, Input} from "@geist-ui/react";
 import {animated, config, useSpring} from "react-spring";
-import maps from "./data/maps"
-import {divisionsAllies, divisionsAxis} from "./data/divisions";
+import {divisionsAllies, divisionsAxis, divisionsById} from "./data/divisions";
+import {maps} from "sd2-data"
 import socket, {useMatch, useProfile, useServer} from "./service/socket"
 import {useParams} from "react-router";
+
+const sd2LeagueMaps = maps.mapData.sd2League
 
 const alliesDivs = divisionsAllies
 const axisDivs = divisionsAxis
@@ -75,8 +77,10 @@ function PickPlayer() {
         </div>
 
         <div className="pt3 mw6 ph3 center tc white-60">
-            {slot === 1 && <p>Player 1 picks <b className={"b white"}>faction first</b> and <b className={"b white"}>income last</b>.</p>}
-            {slot === 2 && <p>Player 2 picks <b className={"b white"}>faction last</b> and <b className={"b white"}>income first</b>.</p>}
+            {slot === 1 &&
+            <p>Player 1 picks <b className={"b white"}>faction last</b>, <b className={"b white"}>division first</b> and <b className={"b white"}>income last</b>.</p>}
+            {slot === 2 &&
+            <p>Player 2 picks <b className={"b white"}>faction first</b>, <b className={"b white"}>division last</b> and <b className={"b white"}>income first</b>.</p>}
         </div>
 
         <MatchFooter>
@@ -108,11 +112,16 @@ function BanMaps() {
     const params = useParams()
     const {phaseIndex = 0} = params
     const activePhase = banPhases[phaseIndex]
+    const {activeTeam} = activePhase
     const nextPhase = banPhases[phaseIndex + 1]
     const MAX_BANS = activePhase.banCount
     const nextLink = nextPhase ? `/maps/${phaseIndex + 1}` : "/pick-a-map"
     const [bannedMaps, setBans] = React.useState({})
     const match = useMatch(state => state)
+
+    React.useEffect( () => {
+        match.setBans(activeTeam, {})
+    }, [activeTeam])
 
     const toggleBan = (map) => {
         let newBans
@@ -152,7 +161,7 @@ function BanMaps() {
         </div>
 
         <div className="flex flex-wrap ph3 mw6 center">
-            {maps.map(mapName => {
+            {sd2LeagueMaps.map(mapName => {
                 const isBanned = previouslyBanned[mapName]
                 return <div key={mapName} className={"ma1"}>
                     <Button
@@ -164,18 +173,13 @@ function BanMaps() {
                 </div>
             })}
         </div>
-        <div className="pt3">
-            TEAM A BANS: {Object.keys(match.teamA.bannedMaps).map(e => e).join(", ")}
-        </div>
-        <div className="pt3">
-            TEAM B BANS: {Object.keys(match.teamB.bannedMaps).map(e => e).join(", ")}
-        </div>
 
         <MatchFooter>
             {!canContinue && <div className=""><Button className={"w-100"}> BAN {MAX_BANS - banCount} MORE MAPS TO CONTINUE</Button></div>}
             {canContinue && <div className=""><Button
                 onClick={() => {
                     match.setBans(activePhase.activeTeam, bannedMaps)
+                    setBans({})
                     history.push(nextLink)
                 }}
                 className={"w-100"}>Continue</Button></div>}
@@ -183,23 +187,41 @@ function BanMaps() {
     </div>
 }
 
-function BanDivisions() {
-    const MAX_BANS = 2
-    const [bannedMaps, setBans] = React.useState({})
-    const addBan = (map) => {
-        const newBans = {
-            map: true,
-            ...bannedMaps
-        }
-        setBans(newBans)
-    }
 
-    const toggleBan = (map) => {
+const banDivisionPhases = [
+    {
+        activeTeam: "A",
+        banCount: 3,
+    },
+    {
+        activeTeam: "B",
+        banCount: 3,
+    }
+]
+
+function BanDivisions() {
+    const match = useMatch(state => state)
+    const history = useHistory()
+    const params = useParams()
+    const phaseIndex = params.phaseIndex || 0
+    const activePhase = banDivisionPhases[phaseIndex || 0]
+    const {activeTeam} = activePhase
+    const nextPhase = banDivisionPhases[phaseIndex + 1] || false
+    const nextLink = nextPhase ? `/divisions/${phaseIndex + 1}` : "/pick-faction"
+    const MAX_BANS = activePhase.banCount
+    const [bannedDivisions, setBans] = React.useState({})
+    const previouslyBanned = {...(match.teamA.bannedDivisions), ...(match.teamB.bannedDivisions)}
+
+    React.useEffect( () => {
+        match.setBans(activeTeam, {})
+    }, [activeTeam])
+
+    const toggleBan = (divId) => {
         let newBans
-        if (bannedMaps[map]) {
+        if (bannedDivisions[divId]) {
             newBans = {
-                ...bannedMaps,
-                [map]: false
+                ...bannedDivisions,
+                [divId]: false
             }
         } else {
             if (MAX_BANS <= banCount) {
@@ -207,14 +229,14 @@ function BanDivisions() {
             }
 
             newBans = {
-                ...bannedMaps,
-                [map]: true
+                ...bannedDivisions,
+                [divId]: true
             }
         }
         setBans(newBans)
     }
 
-    const banCount = Object.values(bannedMaps).filter(e => e).length
+    const banCount = Object.values(bannedDivisions).filter(e => e).length
     const canContinue = MAX_BANS === banCount
 
     return <div className={""}>
@@ -222,35 +244,75 @@ function BanDivisions() {
             <div className="f6">BAN</div>
             <div className={"b f3"}>DIVISIONS</div>
             <div className="white-60 mw6 ph3 center">
-                <p> Ban {MAX_BANS - banCount} more divisions</p>
+                <p> Player {activePhase.activeTeam} bans {MAX_BANS - banCount} more divisions</p>
             </div>
         </div>
 
         <div className=" ph3 mw7 center pb4">
-            <div className="f7 pv2 white-40 ttu">AXIS</div>
-            <div className="flex flex-row flex-wrap na1">
-                {[...Object.values(axisDivs)]
-                    .sort()
-                    .map(mapName => {
-                        return <div key={mapName} className={"w-50"}>
-                            <div className="ma1">
-                                <Button
-                                    className="w-100"
-                                    size={"small"} ghost type={bannedMaps[mapName] === true ? "warning" : "default"}
-                                    onClick={() => {
-                                        toggleBan(mapName)
-                                    }}>{mapName}</Button>
-                            </div>
-                        </div>
-                    })}
+            <div>
+                <div className={"pb3"}>
+                    <div className="ttu white-60 pb1">AXIS</div>
+                    <div className="flex flex-row flex-wrap na1">
+                        {[...Object.values(axisDivs)]
+                            .sort((a, b) => {
+                                return a > b ? -1 : 1
+                            })
+                            .map(division => {
+                                const divId = division.id
+                                const isBanned = previouslyBanned[divId]
+                                return <div key={divId} className={"w-50"}>
+                                    <div className="ma1">
+                                        <Button
+                                            disabled={isBanned}
+                                            iconRight={<div>{division.alias}</div>}
+                                            className="w-100"
+                                            size={"small"} ghost type={bannedDivisions[divId] === true ? "warning" : "default"}
+                                            onClick={() => {
+                                                toggleBan(divId)
+                                            }}><span className={`${isBanned ? "strike" : ""}`}>{division.name}</span></Button>
+                                    </div>
+                                </div>
+                            })}
+                    </div>
+                </div>
+                <div>
+                    <div className="ttu white-60 pb1">ALLIES</div>
+                    <div className="flex flex-row flex-wrap na1">
+                        {[...Object.values(alliesDivs)]
+                            .sort((a, b) => {
+                                return a > b ? -1 : 1
+                            })
+                            .map(division => {
+                                const divId = division.id
+                                return <div key={divId} className={"w-50"}>
+                                    <div className="ma1">
+                                        <Button
+                                            className="w-100"
+                                            size={"small"} ghost type={bannedDivisions[divId] === true ? "warning" : "default"}
+                                            onClick={() => {
+                                                toggleBan(divId)
+                                            }}>{division.name}</Button>
+                                    </div>
+                                </div>
+                            })}
+                    </div>
+                </div>
             </div>
         </div>
-
 
         <MatchFooter>
             <div className="tc">
                 {!canContinue && <div className={""}><Button> BAN {MAX_BANS - banCount} MORE DIVS TO CONTINUE</Button></div>}
-                {canContinue && <div className={""}><Link to={"/pick-faction"}><Button>Continue</Button></Link></div>}
+                {canContinue && <div className={""}>
+                    <Button
+                        onClick={() => {
+                            match.setDivisionBans(activePhase.activeTeam, bannedDivisions)
+                            history.push(nextLink)
+                            setBans({})
+                        }}
+                        className={"w-100"}>Continue</Button>
+                </div>}
+
             </div>
         </MatchFooter>
 
@@ -258,9 +320,13 @@ function BanDivisions() {
 }
 
 function PickMap() {
-
+    const match = useMatch(state => state)
+    const bannedMaps = [...Object.keys(match.teamA.bannedMaps), ...Object.keys(match.teamB.bannedMaps)]
     const [showMap, map] = React.useState(false)
-    const mapName = maps[Math.floor(Math.random() * maps.length)];
+    const availableMaps = sd2LeagueMaps.filter( mapName => {
+        return !bannedMaps.includes(mapName)
+    })
+    const mapName = availableMaps[Math.floor(Math.random() * availableMaps.length)]
 
     return <div className={""}>
         <div className="tc pt3 pt4-l">
@@ -272,18 +338,21 @@ function PickMap() {
 
         <MatchFooter>
             <div className="tc">
-                <div className=""><Link to={"/divisions"}><Button>Continue</Button></Link></div>
+                <div className=""><Link to={"/divisions"}><Button
+                onClick={() => {
+                    match.setMap(mapName)
+                }}
+                >Continue</Button></Link></div>
             </div>
         </MatchFooter>
     </div>
 }
 
 function PickFaction() {
-
     const [faction, setFaction] = React.useState(false)
-    const setMatch = useMatch(state => state.set)
+    const match = useMatch(state => state)
     const persist = (fac) => {
-        setMatch({selectedFaction: faction})
+        match.setFaction("A", faction)
     }
 
     return <div className={" ph3"}>
@@ -317,10 +386,12 @@ function PickFaction() {
 
 function PickDivision() {
 
-    const selectedFaction = useMatch(state => state.selectedFaction)
+    const match = useMatch(state => state)
+    const history = useHistory()
+    const selectedFaction = useMatch(state => state.teamA.faction)
 
-    const [selectedDivision, setDivision] = React.useState(false)
-
+    const [selectedDivisionId, setDivision] = React.useState(false)
+    const selectedDivision = divisionsById[selectedDivisionId]
     const divisions = selectedFaction === "axis" ? axisDivs : alliesDivs
 
     return <div className={""}>
@@ -334,22 +405,31 @@ function PickDivision() {
 
         <div className="tc pb3">
             {[...Object.values(divisions)].sort().map(division => {
-                return <div key={division} className={"pb1"}>
+                return <div key={division.id} className={"pb1 mw6 center"}>
                     <Button
                         ghost
-                        type={selectedDivision === division ? "warning" : "default"}
+                        iconRight={<div>{division.alias}</div>}
+                        className={"w-100"}
+                        type={selectedDivisionId === division.id ? "warning" : "default"}
                         onClick={() => {
                             console.log("SELECT DIV", {division})
-                            setDivision(division)
-                        }}>{division}</Button>
+                            setDivision(division.id)
+                        }}>
+                        <div>{division.name}</div>
+                    </Button>
                 </div>
             })}
         </div>
 
         <MatchFooter>
             <div className="tc">
-                {!selectedDivision && <div className=""><Link to={"/pick-income"}><Button>Select a division</Button></Link></div>}
-                {selectedDivision && <div className=""><Link to={"/pick-income"}><Button>Continue with {selectedDivision}</Button></Link></div>}
+                {!selectedDivision && <div className=""><Button>Select a division</Button></div>}
+                {selectedDivision && <div className=""><Button
+                    onClick={() => {
+                        match.setDivision("A", selectedDivision)
+                        history.push("/pick-income")
+                    }}
+                >Continue with {selectedDivision.name}</Button></div>}
             </div>
         </MatchFooter>
     </div>
@@ -357,7 +437,8 @@ function PickDivision() {
 
 
 function PickIncome() {
-
+    const history = useHistory()
+    const match = useMatch(state => state)
     const incomes = ["Vanguard", "Maverick", "Balanced", "V for Victory", "Juggernaut"]
     const incomeData = {
         "Vanguard": {
@@ -408,13 +489,21 @@ function PickIncome() {
         <MatchFooter>
             <div className="tc">
                 {!selectedIncome && <div className=""><Link to={"/summary"}><Button className={""}>Select income</Button></Link></div>}
-                {selectedIncome && <div className=""><Link to={"/summary"}><Button className={""}>Continue with {selectedIncome}</Button></Link></div>}
+                {selectedIncome && <div className="">
+                    <Button
+                        onClick={() => {
+                            // TODO: generalize
+                            match.setIncome("A", selectedIncome)
+                            history.push("/summary")
+                        }}
+                        className={""}>Continue with {selectedIncome}</Button></div>}
             </div>
         </MatchFooter>
     </div>
 }
 
 function Summary() {
+    const match = useMatch(state => state)
     return <div className={"mw5 center tl pt3"}>
         <div className="tc pt3 pb3 pt4-l">
             <div className="f6">MATCH</div>
@@ -426,16 +515,25 @@ function Summary() {
 
         <div className="mw5 center tl pt3">
             <div className={"f7 white-60 ttu"}>MAP</div>
-            <div>TSEL</div>
+            <div>{match.map}</div>
 
             <div className="pt3">
                 <div className={"f7 white-60 ttu"}>PLAYER A</div>
-                <div>122 Panzer (Vanguard)</div>
+                <div>{match.teamA.division.name}  ({match.teamA.income})</div>
             </div>
 
             <div className="pt3">
                 <div className={"f7 white-60 ttu"}>PLAYER B</div>
-                <div>44 Guards Tankovy (Vanguard)</div>
+                <div>{match.teamB.division && match.teamB.division.name} ({match.teamB.income})</div>
+            </div>
+            <div className="f7">
+                <div className="pt3">
+                    TEAM A: {Object.keys(match.teamA.bannedMaps).map(e => e).join(", ")}
+                </div>
+                <div className="pt3">
+                    TEAM B: {Object.keys(match.teamB.bannedMaps).map(e => e).join(", ")}
+                </div>
+
             </div>
         </div>
 
@@ -453,7 +551,6 @@ function IndexPage() {
 
     return <div className={""}>
         <div className="pa3 tc">
-
             {profile.username && <div>
                 <div className={"f3"}>Welcome back <b>{profile.username}</b></div>
                 <div className="f7 "><a onClick={profile.logout} href="#">Not me. Sign out!</a></div>
@@ -548,7 +645,7 @@ function Routes() {
                     <Route exact path={"/maps/:phaseIndex?"} component={BanMaps}/>
                     <Route exact path={"/pick-a-map"} component={PickMap}/>
                     <Route exact path={"/divisions/:phaseIndex?"} component={BanDivisions}/>
-                    <Route exact path={"/pick-faction"} component={PickFaction}/>
+                    <Route exact path={"/pick-faction/:phaseIndex?"} component={PickFaction}/>
                     <Route exact path={"/pick-division"} component={PickDivision}/>
                     <Route exact path={"/pick-income"} component={PickIncome}/>
                     <Route exact path={"/summary"} component={Summary}/>
