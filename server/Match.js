@@ -8,7 +8,6 @@ const state = {
 }
 
 class Match {
-  
   phase = state.RPS
   
   constructor( {
