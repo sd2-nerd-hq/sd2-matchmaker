@@ -30,10 +30,11 @@ export default function LadderPage() {
    </div>
     
     {players.map( player => {
-      return <div className=" pa3 mb2 ba b--white-10">
+      return <div className=" pv3 pr3 mb2 ba b--white-10">
         <div className="flex flex-row items-center">
-          <div className="b f3 pr3 white-40 mw3 w-100 tc ">{player.rank}</div>
+          <div className="b f3 pl3 pr3 white-40 mw3 w-100 tc ">{player.rank}</div>
           <div className="b f4">{player.name}</div>
+          <div className="b f4 ml-auto white-40">{Math.round(player.elo)}</div>
         </div>
       </div>
     } )}
