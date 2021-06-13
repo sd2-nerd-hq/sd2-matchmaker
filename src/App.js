@@ -3,7 +3,7 @@ import './App.css';
 import './tachyons.min.css';
 import create from "zustand";
 import {BrowserRouter as Router, Link, Route, Switch, useHistory} from "react-router-dom"
-import {Button, Collapse, CssBaseline, GeistProvider, Input} from "@geist-ui/react";
+import {Button, CssBaseline, GeistProvider, Input} from "@geist-ui/react";
 import {animated, config, useSpring} from "react-spring";
 import {divisionsAllies, divisionsAxis, divisionsById} from "./data/divisions";
 import {maps} from "sd2-data"

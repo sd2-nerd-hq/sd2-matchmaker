@@ -14,9 +14,11 @@
   "dependencies": {
     "ascii-table": "0.0.9",
     "discord.js": "^12.3.1",
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "nanoid": "^3.1.22",
     "nedb-promises": "^4.0.4",
+    "socket.io": "^4.1.2",
     "stocks.js": "0.0.19",
     "unique-names-generator": "^4.4.0",
     "uuid": "^8.3.2",

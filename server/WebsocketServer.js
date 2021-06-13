@@ -1,38 +1,25 @@
-const WebSocket = require( 'ws' );
-const express = require("express")
-const INDEX = '/index.html';
-const PORT = process.env.PORT || 8080
-
-const server = express()
-  .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-  .listen(PORT, () => console.log(`Listening on ${PORT}`));
-
-
-const wss = new WebSocket.Server( { server } );
+const { Server } = require("socket.io");
 
 let subscribers = []
 
-
 class WebSocketServer {
-  constructor( matches ) {
-    this.matches = matches
-    console.log( `STARTING WSS on PORT ${PORT}` )
-    const WebSocket = require( 'ws' );
-    
-    const wss = new WebSocket.Server( { port: 8080 } );
-    wss.on( 'connection', ( ws ) => {
+  constructor( server ) {
+
+    this.matches = []
+    const io = new Server(server);
+    io.on( 'connection', ( socket ) => {
       
-      ws.on( "close", () => {
-        subscribers = subscribers.filter( sub => sub !== ws )
+      socket.on( "close", () => {
+        subscribers = subscribers.filter( sub => sub !== socket )
       } )
       
-      ws.on( 'message', ( message ) => {
+      socket.on( 'message', ( message ) => {
         try {
           const json = JSON.parse( message )
           const { event, data, token, matchId } = json
           console.log( event, data )
           if ( event && data ) {
-            this.handleMessage( ws, event, data, { token, matchId } )
+            this.handleMessage( socket, event, data, { token, matchId } )
           }
         } catch (err) {
           // meh
@@ -40,7 +27,7 @@ class WebSocketServer {
         console.log( 'received: %s', message );
       } );
       
-      this.send( ws, "READY", true )
+      this.send( socket, "READY", true )
     } );
   }
   
