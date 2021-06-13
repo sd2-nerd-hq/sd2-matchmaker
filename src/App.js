@@ -9,6 +9,7 @@ import {divisionsAllies, divisionsAxis, divisionsById} from "./data/divisions";
 import {maps} from "sd2-data"
 import socket, {useMatch, useProfile, useServer} from "./service/socket"
 import {useParams} from "react-router";
+import LadderPage from "./page/LadderPage/LadderPage";
 
 const sd2LeagueMaps = maps.mapData.sd2League
 
@@ -640,6 +641,7 @@ function Routes() {
         <div className="App relative pb5">
             <Router>
                 <Switch>
+                    <Route path={"/ladder"} component={LadderPage}/>
                     <Route exact path={"/match/:matchId/:token?"} component={InitMatch}/>
                     <Route exact path={"/slot"} component={PickPlayer}/>
                     <Route exact path={"/maps/:phaseIndex?"} component={BanMaps}/>
