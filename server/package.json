@@ -18,6 +18,7 @@
     "express": "^4.17.1",
     "nanoid": "^3.1.22",
     "nedb-promises": "^4.0.4",
+    "node-fetch": "^2.6.1",
     "socket.io": "^4.1.2",
     "stocks.js": "0.0.19",
     "unique-names-generator": "^4.4.0",

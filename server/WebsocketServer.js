@@ -1,3 +1,4 @@
+const { matchById } = require( "./Tournament" );
 const { Server } = require("socket.io");
 
 let subscribers = []
@@ -6,7 +7,12 @@ class WebSocketServer {
   constructor( server ) {
 
     this.matches = []
-    const io = new Server(server);
+    const io = new Server(server, {
+      cors:{
+        origin: process.env.APP_URL,
+        methods: ["GET", "POST", "PUT"]
+      }
+    });
     io.on( 'connection', ( socket ) => {
       
       socket.on( "close", () => {
@@ -25,10 +31,9 @@ class WebSocketServer {
           // meh
         }
         console.log( 'received: %s', message );
-      } );
-      
+      } )
       this.send( socket, "READY", true )
-    } );
+    } )
   }
   
   send( socket, event, data ) {
@@ -39,32 +44,31 @@ class WebSocketServer {
   
   }
   
-  handleMessage( ws, event, data, { token, matchId } ) {
-    let match = matchId && this.matches[ matchId ]
+  handleMessage( ws, event, data, { playerToken, matchId } ) {
+    let match = matchId && matchById[ matchId ]
     let isAuthorized = false
     if ( !match ) {
       this.send( "ERROR", { error: "NO MATCH FOUND" } )
       return
     }
-    
     if ( data.token === match.token0 || data.token === match.token1 ) {
       isAuthorized = true
     }
     
     switch (event) {
       case "INPUT":
-        match.setPlayerData( token, data )
-        match.broadcast( "MATCH:UPDATE", match.export( token ) )
+        match.setPlayerData( playerToken, data )
+        match.broadcast( "MATCH:UPDATE", match.export( playerToken ) )
         break;
       case "JOIN":
         if ( match ) {
-          match.setPlayerData( token, { isJoined: true } )
+          match.setPlayerData( playerToken, { isJoined: true } )
           match.subscribers.push( ws )
-          match.broadcast( "MATCH:UPDATE", match.export( token ) )
-          this.send( ws, "MATCH:INIT", match.export( token ) )
+          match.broadcast( "MATCH:UPDATE", match.export( playerToken ) )
+          this.send( ws, "MATCH:INIT", match.export( playerToken ) )
         } else {
           match.subscribers.push( ws )
-          this.send( ws, "MATCH:UPDATE", match.export( token ) )
+          this.send( ws, "MATCH:UPDATE", match.export( playerToken ) )
         }
         break;
     }

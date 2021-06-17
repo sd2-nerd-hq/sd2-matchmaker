@@ -1,12 +1,13 @@
 import create from "zustand";
 import cogoToast from 'cogo-toast';
+import { io } from "socket.io-client";
 
 class Socket {
     token = false
     matchId = false
 
     constructor() {
-        const ws = new WebSocket(process.env.REACT_APP_WEBSOCKET_SERVER)
+        const ws = new io(process.env.REACT_APP_WEBSOCKET_SERVER)
         this.ws = ws
 
         this.ws.onopen = () => {

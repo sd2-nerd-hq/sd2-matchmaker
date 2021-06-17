@@ -1,38 +1,89 @@
-require('dotenv').config()
-
-const WebsocketServer = require("./WebsocketServer")
-const {uniqueNamesGenerator, adjectives, colors, animals} = require('unique-names-generator');
+require( 'dotenv' ).config()
+const WebsocketServer = require( "./WebsocketServer" )
 const PORT = process.env.PORT || 8080
-const express = require('express');
+const express = require( 'express' );
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
+const cors = require( "cors" )
+const http = require( 'http' );
+const { Tournament } = require( "./Tournament" );
+const getTournament = require( "./getTournament" );
+const server = http.createServer( app );
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
+app.use( cors() )
 
-server.listen(PORT, () => {
-    console.log('listening on *:PORT');
-});
+app.get( '/', ( req, res ) => {
+  res.sendFile( __dirname + '/index.html' );
+} )
 
-app.get('/matches', (req, res) => {
+app.post( "/tournament/:tournamentId/:matchId", async ( req, res ) => {
+  const { playerToken } = req.query
+  console.log( { playerToken } )
+  let t = await getTournament( req.params.tournamentId )
+  let match = t.matchById[ req.params.matchId ]
+  res.json( match )
+} )
 
-    res.send('<h1>Hello world</h1>');
-});
+app.get( "/tournament/:tournamentId/:matchId", async ( req, res ) => {
+  const { playerToken } = req.query
+  console.log( { playerToken } )
+  let t = await getTournament( req.params.tournamentId )
+  let match = t.matchById[ req.params.matchId ]
+  
+  let isPlayer1, editable, isPlayer2 = false
+  
+  if ( match ) {
+    if ( match.player1 && match.player1.hash === playerToken ) {
+      isPlayer1 = true
+      editable = true
+    }
+    if ( match.player2 && match.player2.hash === playerToken ) {
+      isPlayer2 = true
+      editable = true
+    }
+  }
+  res.json( {match, editable, isPlayer2, isPlayer1} )
+} )
 
+//ADMIN RELOAD TOURNAMENT
+app.get( "/tournament/:tournamentId", async ( req, res ) => {
+  const tournamentId = Number( req.params.tournamentId )
+  const tournament = new Tournament( tournamentId )
+  await tournament.fetchTournament()
+  // await tournament.fetchParticipants()
+  console.log( { tournament } )
+  const matchLinks = tournament.matches.map( match => {
+    const player1 = tournament.playerById[ match.player1_id ]
+    const player2 = tournament.playerById[ match.player2_id ]
+    
+    let linkMatch = `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}`
+    let linkPlayer1 = player1 && `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}/${player1.hash}`
+    let linkPlayer2 = player2 && `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}/${player2.hash}`
+    
+    return {
+      match,
+      linkMatch,
+      linkPlayer1,
+      linkPlayer2,
+      player1,
+      player2,
+      state: match.state
+    }
+  } )
+  res.json( matchLinks )
+} )
 
-const randomName = uniqueNamesGenerator({dictionaries: [adjectives, colors, animals]}); // big_red_donkey
-const createShortName = () => {
-    return uniqueNamesGenerator({
-        dictionaries: [adjectives, animals, colors], // colors can be omitted here as not used
-        separator: "-",
-        length: 3
-    }); // big-red-donkey
-}
+server.listen( PORT, () => {
+  console.log( 'listening on *:PORT' );
+} );
+
+app.get( '/matches', ( req
+  , res ) => {
+  res.send( '<h1>Hello world</h1>' );
+} );
+
 
 const matches = {}
 global.matches = matches
 
-const wss = new WebsocketServer(server)
-global["wss"] = wss
+const wss = new WebsocketServer( server )
+global[ "wss" ] = wss
