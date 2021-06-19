@@ -1,5 +1,4 @@
-import { useMatch } from "../service/socket";
-import { useHistory } from "react-router-dom";
+import { useServer } from "../service/socket";
 import React from "react";
 import { divisionsAllies, divisionsAxis, divisionsById } from "../data/divisions";
 import { Button } from "@geist-ui/react";
@@ -8,11 +7,9 @@ import { MatchFooter } from "./MatchFooter";
 const alliesDivs = divisionsAllies
 const axisDivs = divisionsAxis
 
-export function PickDivision() {
-  
-  const match = useMatch( state => state )
-  const history = useHistory()
-  const selectedFaction = useMatch( state => state.teamA.faction )
+export function PickDivision({onSubmit}) {
+  const server = useServer(state => state )
+  const selectedFaction = server.activePlayer.faction
   
   const [selectedDivisionId, setDivision] = React.useState( false )
   const selectedDivision = divisionsById[ selectedDivisionId ]
@@ -50,8 +47,7 @@ export function PickDivision() {
         {!selectedDivision && <div className=""><Button>Select a division</Button></div>}
         {selectedDivision && <div className=""><Button
           onClick={() => {
-            match.setDivision( "A", selectedDivision )
-            history.push( "/pick-income" )
+            onSubmit(selectedDivision)
           }}
         >Continue with {selectedDivision.name}</Button></div>}
       </div>

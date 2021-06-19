@@ -4,13 +4,15 @@ import React from "react";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
 
-export function PickIncome() {
-  const history = useHistory()
+export function PickIncome({onSubmit}) {
   const match = useMatch( state => state )
-  const incomes = ["Vanguard", "Maverick", "Balanced", "V for Victory", "Juggernaut"]
+  const incomes = ["Vanguard", "Flatline", "Maverick", "Balanced", "V for Victory", "Juggernaut"]
   const incomeData = {
     "Vanguard": {
       text: "140/135/100"
+    },
+    "Flatline": {
+      text: "125/125/125"
     },
     "Maverick": {
       text: "120/170/80"
@@ -62,7 +64,7 @@ export function PickIncome() {
             onClick={() => {
               // TODO: generalize
               match.setIncome( "A", selectedIncome )
-              history.push( "/summary" )
+              onSubmit(selectedIncome)
             }}
             className={""}>Continue with {selectedIncome}</Button></div>}
       </div>

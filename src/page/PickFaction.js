@@ -1,15 +1,12 @@
 import React from "react";
-import { useMatch } from "../service/socket";
+import { useMatch, useServer } from "../service/socket";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
 import { Link } from "react-router-dom";
 
-export function PickFaction() {
+export function PickFaction({onSubmit}) {
   const [faction, setFaction] = React.useState( false )
-  const match = useMatch( state => state )
-  const persist = ( fac ) => {
-    match.setFaction( "A", faction )
-  }
+  const server = useServer( state => state )
   
   return <div className={" ph3"}>
     <div className="tc pt3 pt4-l">
@@ -34,7 +31,10 @@ export function PickFaction() {
     <MatchFooter>
       <div className="tc">
         {!faction && <div className=""><Button>Select a faction to continue</Button></div>}
-        {faction && <div className=""><Link to={"/pick-division"}><Button onClick={persist}>Continue as {faction}</Button></Link></div>}
+        {faction && <div className=""><Button onClick={() => {
+          onSubmit(faction)
+        }
+        }>Continue as {faction}</Button></div>}
       </div>
     </MatchFooter>
   </div>

@@ -1,4 +1,4 @@
-import { useMatch } from "../service/socket";
+import { useMatch, useServer } from "../service/socket";
 import { useHistory } from "react-router-dom";
 import { useParams } from "react-router";
 import React from "react";
@@ -20,8 +20,9 @@ const banDivisionPhases = [
   }
 ]
 
-export function BanDivisions() {
+export function BanDivisions( { onSubmit } ) {
   const match = useMatch( state => state )
+  const server = useServer( state => state )
   const history = useHistory()
   const params = useParams()
   const phaseIndex = params.phaseIndex || 0
@@ -31,7 +32,7 @@ export function BanDivisions() {
   const nextLink = nextPhase ? `/divisions/${phaseIndex + 1}` : "/pick-faction"
   const MAX_BANS = activePhase.banCount
   const [bannedDivisions, setBans] = React.useState( {} )
-  const previouslyBanned = { ...(match.teamA.bannedDivisions), ...(match.teamB.bannedDivisions) }
+  const previouslyBannedKeys = server.match.DIV_BANS
   
   React.useEffect( () => {
     match.setBans( activeTeam, {} )
@@ -59,7 +60,7 @@ export function BanDivisions() {
   
   const banCount = Object.values( bannedDivisions ).filter( e => e ).length
   const canContinue = MAX_BANS === banCount
-  
+  console.log( {previouslyBannedKeys} )
   return <div className={""}>
     <div className="tc pt3 pt4-l">
       <div className="f6">BAN</div>
@@ -70,22 +71,22 @@ export function BanDivisions() {
     </div>
     
     <div className=" ph3 mw7 center pb4">
-      <div>
+      <div className={"flex flex-row justify-between"}>
         <div className={"pb3"}>
           <div className="ttu white-60 pb1">AXIS</div>
-          <div className="flex flex-row flex-wrap na1">
+          <div className="flex flex-column flex-wrap na1">
             {[...Object.values( axisDivs )]
               .sort( ( a, b ) => {
                 return a > b ? -1 : 1
               } )
               .map( division => {
                 const divId = division.id
-                const isBanned = previouslyBanned[ divId ]
-                return <div key={divId} className={"w-50"}>
+                const isBanned = previouslyBannedKeys && previouslyBannedKeys.includes( `${divId}` )
+                return <div key={divId} className={"w-100"}>
                   <div className="ma1">
                     <Button
+                      title={division.name}
                       disabled={isBanned}
-                      iconRight={<div>{division.alias}</div>}
                       className="w-100"
                       size={"small"} ghost type={bannedDivisions[ divId ] === true ? "warning" : "default"}
                       onClick={() => {
@@ -98,21 +99,24 @@ export function BanDivisions() {
         </div>
         <div>
           <div className="ttu white-60 pb1">ALLIES</div>
-          <div className="flex flex-row flex-wrap na1">
+          <div className="flex flex-column flex-wrap na1">
             {[...Object.values( alliesDivs )]
               .sort( ( a, b ) => {
                 return a > b ? -1 : 1
               } )
               .map( division => {
                 const divId = division.id
-                return <div key={divId} className={"w-50"}>
+                const isBanned = previouslyBannedKeys && previouslyBannedKeys.includes(  `${divId}`  )
+                return <div key={divId} className={"w-100"}>
                   <div className="ma1">
                     <Button
+                      title={division.name}
+                      disabled={isBanned}
                       className="w-100"
                       size={"small"} ghost type={bannedDivisions[ divId ] === true ? "warning" : "default"}
                       onClick={() => {
                         toggleBan( divId )
-                      }}>{division.name}</Button>
+                      }}><span className={`${isBanned ? "strike" : ""}`}>{division.name}</span></Button>
                   </div>
                 </div>
               } )}
@@ -127,9 +131,7 @@ export function BanDivisions() {
         {canContinue && <div className={""}>
           <Button
             onClick={() => {
-              match.setDivisionBans( activePhase.activeTeam, bannedDivisions )
-              history.push( nextLink )
-              setBans( {} )
+              onSubmit( Object.keys( bannedDivisions ) )
             }}
             className={"w-100"}>Continue</Button>
         </div>}

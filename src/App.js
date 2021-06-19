@@ -49,15 +49,15 @@ function Routes() {
         <Switch>
           <Route path={"/ladder"} component={LadderPage}/>
           <Route exact path={"/tournament/:tournamentId/:matchId/:playerToken?"} component={InitMatch}/>
-          <Route exact path={"/slot"} component={PickPlayer}/>
-          <Route exact path={"/maps/:phaseIndex?"} component={BanMaps}/>
-          <Route exact path={"/pick-a-map"} component={PickMap}/>
-          <Route exact path={"/divisions/:phaseIndex?"} component={BanDivisions}/>
-          <Route exact path={"/pick-faction/:phaseIndex?"} component={PickFaction}/>
-          <Route exact path={"/pick-division"} component={PickDivision}/>
-          <Route exact path={"/pick-income"} component={PickIncome}/>
-          <Route exact path={"/summary"} component={Summary}/>
-          <Route path={"/"} component={IndexPage}/>
+          {/*<Route exact path={"/slot"} component={PickPlayer}/>*/}
+          {/*<Route exact path={"/maps/:phaseIndex?"} component={BanMaps}/>*/}
+          {/*<Route exact path={"/pick-a-map"} component={PickMap}/>*/}
+          {/*<Route exact path={"/divisions/:phaseIndex?"} component={BanDivisions}/>*/}
+          {/*<Route exact path={"/pick-faction/:phaseIndex?"} component={PickFaction}/>*/}
+          {/*<Route exact path={"/pick-division"} component={PickDivision}/>*/}
+          {/*<Route exact path={"/pick-income"} component={PickIncome}/>*/}
+          {/*<Route exact path={"/summary"} component={Summary}/>*/}
+          {/*<Route path={"/"} component={IndexPage}/>*/}
         </Switch>
       </Router>
     </div>

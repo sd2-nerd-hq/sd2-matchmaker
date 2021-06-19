@@ -29,28 +29,33 @@ app.get( "/tournament/:tournamentId/:matchId", async ( req, res ) => {
   let t = await getTournament( req.params.tournamentId )
   let match = t.matchById[ req.params.matchId ]
   
-  let isPlayer1, editable, isPlayer2 = false
+  let isPlayer1, editable, isPlayer2, activePlayerName = false
   
   if ( match ) {
     if ( match.player1 && match.player1.hash === playerToken ) {
       isPlayer1 = true
+      activePlayerName = match.player1.name
       editable = true
     }
     if ( match.player2 && match.player2.hash === playerToken ) {
       isPlayer2 = true
+      activePlayerName = match.player2.name
       editable = true
     }
   }
-  res.json( {match, editable, isPlayer2, isPlayer1} )
+  res.json( { match, editable, isPlayer2, isPlayer1, activePlayerName } )
 } )
 
 //ADMIN RELOAD TOURNAMENT
 app.get( "/tournament/:tournamentId", async ( req, res ) => {
   const tournamentId = Number( req.params.tournamentId )
-  const tournament = new Tournament( tournamentId )
-  await tournament.fetchTournament()
+  let tournament = await getTournament( req.params.tournamentId )
+  // const tournament = new Tournament( tournamentId )
+  // await tournament.fetchTournament()
   // await tournament.fetchParticipants()
   console.log( { tournament } )
+
+  
   const matchLinks = tournament.matches.map( match => {
     const player1 = tournament.playerById[ match.player1_id ]
     const player2 = tournament.playerById[ match.player2_id ]

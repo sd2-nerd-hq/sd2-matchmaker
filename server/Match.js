@@ -36,7 +36,6 @@ class Match {
     } )
   }
   
-  
   update() {
     switch (this.phase) {
       case state.RPS:

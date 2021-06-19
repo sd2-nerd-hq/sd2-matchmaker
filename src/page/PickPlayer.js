@@ -1,13 +1,14 @@
-import { useProfile } from "../service/socket";
+import { useProfile, useServer } from "../service/socket";
 import React from "react";
 import { animated, config, useSpring } from "react-spring";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
 import { Link } from "react-router-dom";
 
-export function PickPlayer() {
+export function PickPlayer( { onSubmit, player } ) {
   const profile = useProfile( state => state )
   const [slot, setSlot] = React.useState( false )
+  const server = useServer( state => state )
   const fadeStyles = useSpring( {
     config: { ...config.stiff },
     from: { opacity: 0 },
@@ -24,10 +25,13 @@ export function PickPlayer() {
     }
   } );
   
+  if ( server.activePlayerName !== player.name ) return <div>Waiting for the other player to pick Player1/2</div>
+  
+  
   return <div>
     <div className="tc pt3 pt4-l">
-      <div className="f6">Welcome</div>
-      <div className={"b f3"}>{profile.username}</div>
+      {/*<div className="f6">Welcome</div>*/}
+      {/*<div className={"b f3"}>{profile.username}</div>*/}
       <div className="white-60 mw6 ph3 center">
         <p>Select your player slot for this match.</p>
       </div>
@@ -40,16 +44,20 @@ export function PickPlayer() {
     
     <div className="pt3 mw6 ph3 center tc white-60">
       {slot === 1 &&
-      <p>Player 1 picks <b className={"b white"}>faction last</b>, <b className={"b white"}>division first</b> and <b className={"b white"}>income last</b>.</p>}
+      <p>Player 1 picks <b className={"b white"}>faction first</b>, <b className={"b white"}>division first</b> and <b className={"b white"}>income last</b>.</p>}
       {slot === 2 &&
-      <p>Player 2 picks <b className={"b white"}>faction first</b>, <b className={"b white"}>division last</b> and <b className={"b white"}>income first</b>.</p>}
+      <p>Player 2 picks <b className={"b white"}>faction last</b>, <b className={"b white"}>division last</b> and <b className={"b white"}>income first</b>.</p>}
     </div>
     
     <MatchFooter>
       <div className={"bt bt b--white-10"}>
         <div>
           {slot && <animated.div style={slideInStyles}>
-            <Link to={"/maps"}><Button className={"w-100"} ghost type="warning">Continue as Player {slot}</Button></Link>
+            <Button
+              onClick={() => {
+                onSubmit( slot )
+              }}
+              className={"w-100"} ghost type="warning">Continue as Player {slot}</Button>
           </animated.div>}
         </div>
       </div>

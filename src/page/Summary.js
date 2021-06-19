@@ -1,47 +1,68 @@
-import { useMatch } from "../service/socket";
-import { MatchFooter } from "./MatchFooter";
-import { Link } from "react-router-dom";
-import { Button } from "@geist-ui/react";
+import { useMatch, useServer } from "../service/socket";
 import React from "react";
+import { divisionsById } from "../data/divisions";
+
+function getPhaseData( player, name ) {
+  return player.dataByPhase[ name ]
+}
+
+function PlayerCard( { player } ) {
+  let BAN0 = getPhaseData( player, "BAN_DIV0" )
+  let BAN1 = getPhaseData( player, "BAN_DIV1" )
+  let COINSIDE = getPhaseData( player, "COINSIDE" )
+  return <div>
+    <div className="b f3">{player.name}</div>
+    <div className="f7">
+      <div className="f6">Player {player.playerSlot || "..."}</div>
+      <div className="pv2">
+        {BAN0 && BAN0.map( divId => {
+          return <div key={divId}><span className="strike">{divisionsById[ divId ]?.name}</span></div>
+        } )}
+      </div>
+      <div className="pb2">
+        {BAN1 && BAN1.map( divId => {
+          return <div key={divId}><span className="strike">{divisionsById[ divId ]?.name}</span></div>
+        } )}
+      </div>
+      {player.faction && <div className="ttu">{player.faction}</div>}
+      {player.division && <div className="ttu">{player.division.name}</div>}
+      {player.income && <div className="ttu f7">{player.income}</div>}
+      {/*<pre className={"f7"}>{JSON.stringify( player, null, 2 )}</pre>*/}
+    </div>
+  </div>
+}
 
 export function Summary() {
-  const match = useMatch( state => state )
-  return <div className={"mw5 center tl pt3"}>
-    <div className="tc pt3 pb3 pt4-l">
-      <div className="f6">MATCH</div>
-      <div className={"b f3 pt3"}>PLAYER A</div>
-      <div className={"f6"}>VS</div>
-      <div className={"b f3"}>PLAYER B</div>
+  const server = useServer( state => state )
+  console.log( { server } )
+  if ( !server.match ) return <div>LOADING</div>
+  return <div className={"mw9 tl"}>
+    
+    {server.activePlayer && <div className="f7 white-70">
+      <span>Welcome</span>
+      <span className="b white"> {server.activePlayer.name}</span>
+      <div className="w-25">
+        <hr/>
+      </div>
+    </div>}
+    
+    <div className="flex flex-row justify-between">
+      <div className="f7 white-70">Summary</div>
+    </div>
+    <div className="flex flex-row justify-between">
+      <div>
+        <PlayerCard player={server.match.player1}/>
+      </div>
+      <div className="tc">
+        <div className="f6 white-70">MAP</div>
+        <div className="f3 b">{server.match.MAP_SELECTION || "..."}</div>
+        
+      </div>
+      <div>
+        <PlayerCard player={server.match.player2}/>
+      </div>
     </div>
     <hr/>
-    
-    <div className="mw5 center tl pt3">
-      <div className={"f7 white-60 ttu"}>MAP</div>
-      <div>{match.map}</div>
-      
-      <div className="pt3">
-        <div className={"f7 white-60 ttu"}>PLAYER A</div>
-        <div>{match.teamA.division.name} ({match.teamA.income})</div>
-      </div>
-      
-      <div className="pt3">
-        <div className={"f7 white-60 ttu"}>PLAYER B</div>
-        <div>{match.teamB.division && match.teamB.division.name} ({match.teamB.income})</div>
-      </div>
-      <div className="f7">
-        <div className="pt3">
-          TEAM A: {Object.keys( match.teamA.bannedMaps ).map( e => e ).join( ", " )}
-        </div>
-        <div className="pt3">
-          TEAM B: {Object.keys( match.teamB.bannedMaps ).map( e => e ).join( ", " )}
-        </div>
-      
-      </div>
-    </div>
-    
-    <MatchFooter>
-      <div className="tc"><Link to={"/"}><Button>Create New Match</Button></Link></div>
-    </MatchFooter>
-  
+    {/*<pre className={"f7"}>{JSON.stringify( server, null, 2 )}</pre>*/}
   </div>
 }

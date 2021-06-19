@@ -6,6 +6,7 @@ import { Button } from "@geist-ui/react";
 import { maps } from "sd2-data";
 
 const sd2LeagueMaps = maps.mapData.sd2League
+
 export function PickMap() {
   const match = useMatch( state => state )
   const bannedMaps = [...Object.keys( match.teamA.bannedMaps ), ...Object.keys( match.teamB.bannedMaps )]

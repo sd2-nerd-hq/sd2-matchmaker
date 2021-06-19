@@ -18,7 +18,9 @@ class Participant {
     // data contains personal information (email) which shall not leak
     this.id = data.id
     this.name = data.name
-    this.hash = createShortName()
+    //
+    this.hash = data.name || createShortName()
+    this.dataByPhase = {}
   }
 }
 
@@ -33,12 +35,13 @@ class Match {
     this.player2 = playerById[ this.player2_id ]
     this.winner_id = data.winner_id
     this.loser_id = data.loser_id
+    this.playerByToken = {}
+    if ( this.player1 ) this.playerByToken[ this.player1.hash ] = this.player1
+    if ( this.player2 ) this.playerByToken[ this.player2.hash ] = this.player2
   }
 }
 
-
-
- class Tournament {
+class Tournament {
   matches = []
   participants = []
   playerById = {}
@@ -57,7 +60,17 @@ class Match {
     this.participants.forEach( player => {
       this.playerById[ player.id ] = player
     } )
-    this.matches = this.data.matches.map( m => new Match( m.match, this.matchById[ m.match.id ], this.playerById ) )
+    let matches = []
+    this.data.matches.forEach( data => {
+      matches.push( data.match )
+      let secondMatch = {
+        ...data.match,
+        id: data.match.id + "-2"
+      }
+      matches.push(secondMatch)
+    } )
+    
+    this.matches = matches.map( match => new Match( match, this.matchById[ match.id ], this.playerById ) )
     this.matches.forEach( match => {
       this.matchById[ match.id ] = match
       matchById[ match.id ] = match
@@ -83,4 +96,4 @@ class Match {
   }
 }
 
-module.exports = {Tournament, tournamentById, matchById}
+module.exports = { Tournament, tournamentById, matchById }
