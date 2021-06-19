@@ -67,7 +67,7 @@ class Tournament {
         ...data.match,
         id: data.match.id + "-2"
       }
-      matches.push(secondMatch)
+      matches.push( secondMatch )
     } )
     
     this.matches = matches.map( match => new Match( match, this.matchById[ match.id ], this.playerById ) )

@@ -65,7 +65,6 @@ class Socket {
     console.log( "SEND", { event, data } )
     this.socket.send( JSON.stringify( { event, data, matchId: this.matchId, playerToken: this.playerToken } ) )
   }
-  
 }
 
 const useServer = create( set => ({

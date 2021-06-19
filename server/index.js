@@ -47,6 +47,34 @@ app.get( "/tournament/:tournamentId/:matchId", async ( req, res ) => {
 } )
 
 //ADMIN RELOAD TOURNAMENT
+app.get( "/admin/tournament/:tournamentId", async ( req, res ) => {
+  const tournamentId = Number( req.params.tournamentId )
+  let tournament = await getTournament( req.params.tournamentId )
+  // const tournament = new Tournament( tournamentId )
+  // await tournament.fetchTournament()
+  // await tournament.fetchParticipants()
+  console.log( { tournament } )
+  
+  const matchLinks = tournament.matches.map( match => {
+    const player1 = tournament.playerById[ match.player1_id ]
+    const player2 = tournament.playerById[ match.player2_id ]
+    
+    let linkMatch = `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}`
+    let linkPlayer1 = player1 && `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}/${player1.hash}`
+    let linkPlayer2 = player2 && `${process.env.APP_URL}/tournament/${tournamentId}/${match.id}/${player2.hash}`
+    let resetLink = player2 && `${process.env.SERVER_URL}/admin/tournament/${tournamentId}/${match.id}/reset`
+    
+    return {
+      linkMatch,
+      linkPlayer1,
+      linkPlayer2,
+      resetLink
+    }
+  } )
+  res.json( matchLinks )
+} )
+
+//ADMIN RELOAD TOURNAMENT
 app.get( "/tournament/:tournamentId", async ( req, res ) => {
   const tournamentId = Number( req.params.tournamentId )
   let tournament = await getTournament( req.params.tournamentId )

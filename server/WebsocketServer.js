@@ -2,7 +2,7 @@ const { matchById } = require( "./Tournament" );
 const { Server } = require( "socket.io" );
 const { maps } = require( "sd2-data" );
 const sd2LeagueMaps = maps.mapData.sd2League
-const fetch = require("node-fetch")
+const fetch = require( "node-fetch" )
 
 function getRandom( arr, n ) {
   var result = new Array( n ),
@@ -39,18 +39,24 @@ class WebSocketServer {
       } )
       
       socket.on( 'message', ( message ) => {
+        let json
         try {
           console.log( { message } )
-          const json = JSON.parse( message )
-          const { event } = json
-          console.log( event, { json } )
+          json = JSON.parse( message )
+        } catch (err) {
+          // meh
+        }
+        
+        if ( !json ) return
+        const { event } = json
+        try{
           if ( event ) {
             this.handleMessage( socket, event, json )
           }
-        } catch (err) {
-          console.error( err )
-          // meh
+        } catch(err){
+          console.error("IO Message failure", err)
         }
+
       } )
       this.send( socket, "READY", true )
     } )
@@ -88,7 +94,7 @@ class WebSocketServer {
         if ( phase === "COINSIDE" && !match.coinFlip ) {
           match.coinFlip = Math.random() > 0.5 ? "Heads" : "Tails"
           this.io.emit( "MSG", { id: match.id, content: `Coin lands on ${match.coinFlip}` } )
-  
+          
         }
         
         if ( phase === "PLAYER_SELECTION" && !match.PLAYER_SELECTION ) {
@@ -135,7 +141,7 @@ class WebSocketServer {
           player.income = data
           if ( player.income && otherPlayer.income ) {
             match.INCOME_PICKED = true
-          
+            
           }
         }
         
@@ -154,10 +160,9 @@ class WebSocketServer {
   }
 }
 
-saveDataToSheety()
-
-function saveDataToSheety(match){
+function saveDataToSheety( match ) {
   console.log( "SAVE DATA " )
+  
   // FINISH DATA
   let url = 'https://api.sheety.co/c244d864e64e67ddbf0def8c44c07969/sd2BotData/sheet1';
   let body = {
@@ -170,13 +175,14 @@ function saveDataToSheety(match){
     method: 'POST',
     body: JSON.stringify( body ),
     headers: {
+      "Authorization": "Basic dGFubmVyOmFzZGphbHNraGRrbGFzaGRsa2Foc2QuamFrbHNkamxhc2hkbGthc2Q=",
       "content-type": "application/json"
     }
   } )
-    .then(res => {
-      console.log("response", res)
+    .then( res => {
+      console.log( "response", res )
       return res
-    })
+    } )
     .then( ( response ) => response.json() )
     .then( json => {
       // Do something with object
