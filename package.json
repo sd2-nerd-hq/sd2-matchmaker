@@ -15,7 +15,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
     "react-spring": "^8.0.27",
-    "sd2-data": "^0.3.7",
+    "sd2-data": "^0.5.5",
     "socket.io-client": "^4.1.2",
     "web-vitals": "^1.1.0",
     "zustand": "^3.3.3"
