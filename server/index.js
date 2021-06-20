@@ -8,7 +8,8 @@ const http = require( 'http' );
 const { Tournament } = require( "./Tournament" );
 const getTournament = require( "./getTournament" );
 const server = http.createServer( app );
-
+const db = require( "./db/mongo" )
+global.db = db
 app.use( cors() )
 
 app.get( '/', ( req, res ) => {
@@ -82,7 +83,7 @@ app.get( "/tournament/:tournamentId", async ( req, res ) => {
   // await tournament.fetchTournament()
   // await tournament.fetchParticipants()
   console.log( { tournament } )
-
+  
   
   const matchLinks = tournament.matches.map( match => {
     const player1 = tournament.playerById[ match.player1_id ]

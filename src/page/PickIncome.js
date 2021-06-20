@@ -1,11 +1,13 @@
 import { Link, useHistory } from "react-router-dom";
-import { useMatch } from "../service/socket";
+import { useMatch, useServer } from "../service/socket";
 import React from "react";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
+import { getPlayerBySlot } from "./GetPlayerBySlot";
 
-export function PickIncome({onSubmit}) {
+export function PickIncome( { onSubmit } ) {
   const match = useMatch( state => state )
+  const server = useServer( state => state )
   const incomes = ["Vanguard", "Flatline", "Maverick", "Balanced", "V for Victory", "Juggernaut"]
   const incomeData = {
     "Vanguard": {
@@ -28,13 +30,22 @@ export function PickIncome({onSubmit}) {
     },
   }
   const [selectedIncome, setIncome] = React.useState( false )
+  let slot1 = getPlayerBySlot( server.match, 1 )
+  let slot2 = getPlayerBySlot( server.match, 2 )
+  
+  let slot1Income = slot1.income
+  let slot2Income = slot2.income
+  
+  let activePlayer = slot2Income ? slot1 : slot2
+  let activePhaseForMe = server.activePlayer.name === activePlayer.name
+  
   
   return <div className={""}>
     <div className="tc pt3 pt4-l">
       <div className="f6">PICK</div>
       <div className={"b f3"}>INCOME</div>
       <div className="white-60 mw6 ph3 center">
-        <p>Pick your income</p>
+        <p> Player {activePlayer.name} picks income</p>
       </div>
     </div>
     
@@ -56,7 +67,7 @@ export function PickIncome({onSubmit}) {
       } )}
     </div>
     
-    <MatchFooter>
+    {activePhaseForMe && <MatchFooter>
       <div className="tc">
         {!selectedIncome && <div className=""><Link to={"/summary"}><Button className={""}>Select income</Button></Link></div>}
         {selectedIncome && <div className="">
@@ -64,10 +75,10 @@ export function PickIncome({onSubmit}) {
             onClick={() => {
               // TODO: generalize
               match.setIncome( "A", selectedIncome )
-              onSubmit(selectedIncome)
+              onSubmit( selectedIncome )
             }}
             className={""}>Continue with {selectedIncome}</Button></div>}
       </div>
-    </MatchFooter>
+    </MatchFooter>}
   </div>
 }

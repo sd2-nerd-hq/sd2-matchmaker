@@ -64,12 +64,13 @@ function getProtocolPhase( match ) {
 function getCoinFlipWinner( match ) {
   let p1 = match.player1
   let p2 = match.player2
-  if ( !p1.dataByPhase.COINSIDE && !p2.dataByPhase.COINSIDE ) return false
-  if ( p1.dataByPhase.COINSIDE && p1.dataByPhase.COINSIDE === match.coinFlip ) {
+  if ( p1.wonCoinFlip ) {
     return p1
-  } else {
+  }
+  if(p2.wonCoinFlip){
     return p2
   }
+  return false
 }
 
 export default function Protocol() {
@@ -78,10 +79,12 @@ export default function Protocol() {
   let currentPhase = getProtocolPhase( server.match )
   let coinFlipWinner = getCoinFlipWinner( server.match )
   return <div>
-
+    
     {currentPhase === phase.FLIP && <div className="pv4">
       <FlipCoin
-        player={server.match.player1}
+        onSubmitPlayerSlot={( playerSlot ) => {
+          socket.sendPhaseInput( "PLAYER_SELECTION", playerSlot )
+        }}
         onSubmit={( coinSide ) => {
           socket.sendPhaseInput( "COINSIDE", coinSide )
         }}
@@ -108,6 +111,7 @@ export default function Protocol() {
     
     {currentPhase === phase.BAN_DIV0 && <div className="pv4">
       <BanDivisions
+        phase={currentPhase}
         onSubmit={( bannedDivisions ) => {
           socket.sendPhaseInput( phase.BAN_DIV0, bannedDivisions )
         }
@@ -117,6 +121,7 @@ export default function Protocol() {
     
     {currentPhase === phase.BAN_DIV1 && <div className="pv4">
       <BanDivisions
+        phase={currentPhase}
         onSubmit={( bannedDivisions ) => {
           socket.sendPhaseInput( phase.BAN_DIV1, bannedDivisions )
         }
@@ -146,6 +151,10 @@ export default function Protocol() {
       }/>
     </div>}
     
+    {currentPhase === phase.SUMMARY && <div className="pv4">
+      <div className="">Done</div>
+      <div className="f1 white-20 b ttu ">Match Ready</div>
+    </div>}
     
     {/*<div className="pv4">*/}
     {/*  <PickDivision/>*/}

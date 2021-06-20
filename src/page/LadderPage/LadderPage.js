@@ -16,7 +16,7 @@ export default function LadderPage() {
       // const playersData = fetch( "https://sodbot-prod.azurewebsites.net/leaderboard" ) // NO CORS
       const playersData = await fetch( "https://www.blandland.de/sd2-nerd-hq/ladder-proxy.php" )
         .then( res => res.json() )
-      console.log( { playersData } )
+      // console.log( { playersData } )
       setPlayers( playersData )
     }
     

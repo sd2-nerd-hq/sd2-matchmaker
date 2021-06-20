@@ -34,9 +34,9 @@ function PlayerCard( { player } ) {
 
 export function Summary() {
   const server = useServer( state => state )
-  console.log( { server } )
+  // console.log( { server } )
   if ( !server.match ) return <div>LOADING</div>
-  return <div className={"mw9 tl"}>
+  return <div className={"mw9 tl center"}>
     
     {server.activePlayer && <div className="f7 white-70">
       <span>Welcome</span>
@@ -56,7 +56,7 @@ export function Summary() {
       <div className="tc">
         <div className="f6 white-70">MAP</div>
         <div className="f3 b">{server.match.MAP_SELECTION || "..."}</div>
-        
+      
       </div>
       <div>
         <PlayerCard player={server.match.player2}/>

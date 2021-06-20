@@ -3,6 +3,7 @@ const { Server } = require( "socket.io" );
 const { maps } = require( "sd2-data" );
 const sd2LeagueMaps = maps.mapData.sd2League
 const fetch = require( "node-fetch" )
+const mongo = require( "./db/mongo" )
 
 function getRandom( arr, n ) {
   var result = new Array( n ),
@@ -49,14 +50,14 @@ class WebSocketServer {
         
         if ( !json ) return
         const { event } = json
-        try{
+        try {
           if ( event ) {
             this.handleMessage( socket, event, json )
           }
-        } catch(err){
-          console.error("IO Message failure", err)
+        } catch (err) {
+          console.error( "IO Message failure", err )
         }
-
+        
       } )
       this.send( socket, "READY", true )
     } )
@@ -79,7 +80,7 @@ class WebSocketServer {
       return
     }
     
-    let player = match.playerByToken[ playerToken ]
+    let player = match.playerByToken && match.playerByToken[ playerToken ]
     let otherPlayer = player === match.player1 ? match.player2 : match.player1
     
     if ( data.token === match.token0 || data.token === match.token1 ) {
@@ -93,8 +94,14 @@ class WebSocketServer {
         }
         if ( phase === "COINSIDE" && !match.coinFlip ) {
           match.coinFlip = Math.random() > 0.5 ? "Heads" : "Tails"
+          if ( data === match.coinFlip ) {
+            player.wonCoinFlip = true
+            otherPlayer.wonCoinFlip = false
+          } else {
+            player.wonCoinFlip = false
+            otherPlayer.wonCoinFlip = true
+          }
           this.io.emit( "MSG", { id: match.id, content: `Coin lands on ${match.coinFlip}` } )
-          
         }
         
         if ( phase === "PLAYER_SELECTION" && !match.PLAYER_SELECTION ) {
@@ -107,7 +114,7 @@ class WebSocketServer {
         
         if ( phase === "MAP_BAN" ) {
           player.mapBan = data
-          match.MAP_BAN = [...player.mapBan || [], ...otherPlayer.mapBan || []]
+          match.MAP_BAN = [player.mapBan && player.mapBan[ 0 ], otherPlayer.mapBan && otherPlayer.mapBan[ 0 ]]
           if ( player.mapBan && otherPlayer.mapBan ) {
             match.MAP_SELECTION = match.maps.filter( mapName => !match.MAP_BAN.includes( mapName ) )[ 0 ]
           }
@@ -141,7 +148,6 @@ class WebSocketServer {
           player.income = data
           if ( player.income && otherPlayer.income ) {
             match.INCOME_PICKED = true
-            
           }
         }
         
@@ -149,6 +155,7 @@ class WebSocketServer {
         // ROOMS NOT WORKING. Strangely.
         // this.io.to( `match-${match.id}`, ).emit( "message", { match } )
         this.io.emit( "MATCH:UPDATE", match )
+        mongo.Matches.updateMatch( match )
         // match.setPlayerData( playerToken, data )
         // match.broadcast( "MATCH:UPDATE", match.export( playerToken ) )
         break;

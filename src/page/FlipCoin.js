@@ -4,10 +4,13 @@ import { animated, config, useSpring } from "react-spring";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
 import { Link } from "react-router-dom";
+import { PickPlayer } from "./PickPlayer";
 
-export function FlipCoin( { onSubmit, player } ) {
+export function FlipCoin( { onSubmit, onSubmitPlayerSlot } ) {
   const [slot, setSlot] = React.useState( false )
   const server = useServer( state => state )
+  
+  const [hasPlayerSelection, setPlayerSelection] = React.useState( false )
   
   const slideInStyles = useSpring( {
     config: { ...config.stiff },
@@ -17,6 +20,23 @@ export function FlipCoin( { onSubmit, player } ) {
     }
   } );
   let coinFlipResult = server.match.coinFlip
+  
+  if ( hasPlayerSelection ) return <React.Fragment>
+    
+    <PickPlayer
+      player={server.activePlayer}
+      onSubmit={( slot ) => {
+        onSubmitPlayerSlot( slot )
+      }
+      }/>
+    <div className="pt3">
+      <a href={"#"}
+         className={"f6 underline underline-hover white-60 hover-white-80"}
+         onClick={() => {
+        setPlayerSelection( false )
+      }}>Let's go back to the coinflip</a>
+    </div>
+  </React.Fragment>
   
   return <div>
     <div className="tc pt3 pt4-l">
@@ -32,7 +52,13 @@ export function FlipCoin( { onSubmit, player } ) {
     </div>
     
     <div className="pt3 mw6 ph3 center tc white-60">
-      <p>The winner gets to pick player1 or player2.</p>
+      <p>The winner gets to choose between player1 or player2.</p>
+      <div><a href={"#"}
+              className={"f6 underline underline-hover white-60 hover-white-80"}
+              onClick={() => {
+        setPlayerSelection( true )
+      }
+      }>Instead pick P1/P2 manually</a></div>
     </div>
     
     <MatchFooter>

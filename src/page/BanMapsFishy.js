@@ -5,6 +5,8 @@ import { useHistory } from "react-router-dom";
 import { Button } from "@geist-ui/react";
 import { MatchFooter } from "./MatchFooter";
 import { maps } from "sd2-data";
+import { getPlayerBySlot } from "./GetPlayerBySlot";
+
 const sd2LeagueMaps = maps.mapData.sd2League
 
 const banPhases = [
@@ -18,8 +20,7 @@ const banPhases = [
   }
 ]
 
-
-export function BanMapsFishy({onSubmit}) {
+export function BanMapsFishy( { onSubmit } ) {
   const params = useParams()
   const server = useServer()
   const { phaseIndex = 0 } = params
@@ -55,44 +56,53 @@ export function BanMapsFishy({onSubmit}) {
     setBans( newBans )
   }
   
-  const previouslyBanned = { ...server.match.MAP_BAN}
-  console.log( {previouslyBanned} )
+  const previouslyBanned = { ...server.match.MAP_BAN }
+  // console.log( { previouslyBanned } )
   
   const banCount = Object.values( bannedMaps ).filter( e => e ).length
   const canContinue = MAX_BANS === banCount
   
-  const history = useHistory()
+  let slot1 = getPlayerBySlot(server.match, 1)
+  let slot2 = getPlayerBySlot(server.match, 2)
+  
+  let player1Ban = slot1.mapBan && slot1.mapBan[ 0 ]
+  let player2Ban = slot2.mapBan && slot2.mapBan[ 0 ]
+  const isPlayerSlot1 = server.activePlayer.playerSlot === 1
+  const isPlayerSlot2 = server.activePlayer.playerSlot === 2
+  const activePhaseForMe = (isPlayerSlot1 && !player1Ban) || (isPlayerSlot2 && player1Ban)
   
   return <div className={""}>
     <div className="tc pt3 pt4-l">
       <div className="f6">BAN</div>
       <div className={"b f3"}>MAPS</div>
-      <div className="white-60 mw6 ph3 center">
-        <p> Player {activePhase.activeTeam} bans <b className={"white"}>{MAX_BANS - banCount} more</b> maps.</p>
+      <div className="white-60 mw6 ph3 center pb2">
+        {!player1Ban && <div>{slot1.name} has to ban a map</div>}
+        {(player1Ban && !player2Ban) && <div>{slot2.name} has to ban a map</div>}
       </div>
     </div>
     
     <div className="flex flex-wrap ph3 mw6 center">
       {server.match.maps.map( mapName => {
-        const isBanned = server.match.MAP_BAN && server.match.MAP_BAN.includes(mapName)
+        const isBanned = server.match.MAP_BAN && server.match.MAP_BAN.includes( mapName )
         return <div key={mapName} className={"ma1"}>
           <Button
             disabled={isBanned}
             size={"small"} ghost type={bannedMaps[ mapName ] === true ? "warning" : "default"}
             onClick={() => {
+              if ( !activePhaseForMe ) return
               !isBanned && toggleBan( mapName )
             }}><span className={`${isBanned && "strike"}`}>{mapName}</span></Button>
         </div>
       } )}
     </div>
     
-    <MatchFooter>
+    {activePhaseForMe && <MatchFooter>
       {!canContinue && <div className=""><Button className={"w-100"}> BAN {MAX_BANS - banCount} MORE MAPS TO CONTINUE</Button></div>}
       {canContinue && <div className=""><Button
         onClick={() => {
-          onSubmit(Object.keys(bannedMaps))
+          onSubmit( Object.keys( bannedMaps ) )
         }}
         className={"w-100"}>Continue</Button></div>}
-    </MatchFooter>
+    </MatchFooter>}
   </div>
 }
